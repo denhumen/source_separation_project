@@ -105,4 +105,4 @@ def multiplicative_update(A, k, max_iter, init_mode='nndsvd'):
         norm = np.linalg.norm(A - W @ H, 'fro')
         norms.append(norm)
 
-    return W @ H
+    return W, H
