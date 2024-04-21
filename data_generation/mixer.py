@@ -1,12 +1,10 @@
 '''
     This code possess to our 
-        good friend Zahar Kohut
-        that let us use this code
-        for data generation
-        Credits to: https://github.com/zahar-kohut-ucu
+    good friend Zahar Kohut
+    that let us use this code
+    for data generation
+    Credits to: https://github.com/zahar-kohut-ucu
 '''
-
-
 
 # Mixer class
 import pyroomacoustics as pra
