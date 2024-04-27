@@ -69,7 +69,7 @@ def nndsvd_initialization(A, rank):
 
     return w, h
 
-def multiplicative_update(A, k, max_iter, init_mode='random'):
+def multiplicative_update(A, k, max_iter, init_mode='nndsvd'):
     '''
     Perform Multiplicative Update (MU) algorithm for Non-negative Matrix Factorization (NMF).
 
@@ -105,4 +105,4 @@ def multiplicative_update(A, k, max_iter, init_mode='random'):
         norm = np.linalg.norm(A - W @ H, 'fro')
         norms.append(norm)
 
-    return W, H, norms
+    return W, H
