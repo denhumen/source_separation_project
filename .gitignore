@@ -1,3 +1,5 @@
 .vscode
 .idea
 src/__pycache__
+src/.ipynb_checkpoints
+data_generation/__pycache__

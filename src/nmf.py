@@ -1,45 +1,17 @@
 '''
-    Credits to: https://github.com/ahmadvh
+    NMF module
 '''
-
-
 
 import numpy as np
 
-def random_initialization(A, rank):
+def nndsvd_initialization(a, rank):
     '''
-    Initialize matrices W and H randomly.
-
-    Parameters:
-    - A: Input matrix
-    - rank: Rank of the factorization
-
-    Returns:
-    - W: Initialized W matrix
-    - H: Initialized H matrix
+        Init func
     '''
-    num_docs = A.shape[0]
-    num_terms = A.shape[1]
-    W = np.random.uniform(1, 2, (num_docs, rank))
-    H = np.random.uniform(1, 2, (rank, num_terms))
-    return W, H
-
-def nndsvd_initialization(A, rank):
-    '''
-    Initialize matrices W and H using Non-negative Double Singular Value Decomposition (NNDSVD).
-
-    Parameters:
-    - A: Input matrix
-    - rank: Rank of the factorization
-
-    Returns:
-    - W: Initialized W matrix
-    - H: Initialized H matrix
-    '''
-    u, s, v = np.linalg.svd(A, full_matrices=False)
+    u, s, v = np.linalg.svd(a, full_matrices=False)
     v = v.T
-    w = np.zeros((A.shape[0], rank))
-    h = np.zeros((rank, A.shape[1]))
+    w = np.zeros((a.shape[0], rank))
+    h = np.zeros((rank, a.shape[1]))
 
     w[:, 0] = np.sqrt(s[0]) * np.abs(u[:, 0])
     h[0, :] = np.sqrt(s[0]) * np.abs(v[:, 0].T)
@@ -69,40 +41,34 @@ def nndsvd_initialization(A, rank):
 
     return w, h
 
-def multiplicative_update(A, k, max_iter, init_mode='nndsvd'):
+
+
+def divergence(V, W, H):
     '''
-    Perform Multiplicative Update (MU) algorithm for Non-negative Matrix Factorization (NMF).
-
-    Parameters:
-    - A: Input matrix
-    - k: Rank of the factorization
-    - max_iter: Maximum number of iterations
-    - init_mode: Initialization mode ('random' or 'nndsvd')
-
-    Returns:
-    - W: Factorized matrix W
-    - H: Factorized matrix H
-    - norms: List of Frobenius norms at each iteration
+        Divergence func
     '''
-    if init_mode == 'random':
-        W, H = random_initialization(A, k)
-    elif init_mode == 'nndsvd':
-        W, H = nndsvd_initialization(A, k)
+    return (1 / 2) * np.linalg.norm(W @ H - V)
 
-    norms = []
-    epsilon = 1.0e-10
-    for _ in range(max_iter):
-        # Update H
-        W_TA = W.T @ A
-        W_TWH = W.T @ W @ H + epsilon
-        H *= W_TA / W_TWH
 
-        # Update W
-        AH_T = A @ H.T
-        WHH_T = W @ H @ H.T + epsilon
-        W *= AH_T / WHH_T
+def NMF(V, S, MAXITER = 5000, threshold = 1e-12): 
+    ''''
+        NMF func
+    '''
+    counter = 0
+    cost_function = []
+    beta_divergence = 1
 
-        norm = np.linalg.norm(A - W @ H, 'fro')
-        norms.append(norm)
+    W, H = nndsvd_initialization(V, S)
 
-    return W, H
+    while beta_divergence >= threshold and counter <= MAXITER:
+
+        H *= (W.T @ V) / (W.T @ (W @ H) + 10e-12)
+        H[H < 0] = 0
+        W *= (V @ H.T) / ((W @ H) @ H.T + 10e-12)
+        W[W < 0] = 0
+
+        beta_divergence =  divergence(V, W, H)
+        cost_function.append(beta_divergence)
+        counter += 1
+
+    return W, H, cost_function
