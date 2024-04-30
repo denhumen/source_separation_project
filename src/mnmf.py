@@ -1,7 +1,7 @@
 import numpy as np
 
 EPS = 1e-12
-THRESHOLD = 1e+12
+THRESHOLD = 1e-12
 
 def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
     n_channels, n_bins, n_frames = input.shape
