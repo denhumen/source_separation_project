@@ -1,15 +1,13 @@
 import numpy as np
 
 EPS = 1e-12
-THRESHOLD = 1e-12
+THRESHOLD = 1e+12
 
 def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
     n_channels, n_bins, n_frames = input.shape
 
     # Initializing step 
-
-    if n_sources is None:
-        n_sources = n_channels
+    n_sources = n_channels
 
     G = np.ones((n_sources, n_bins, n_channels)) * 1e-2
     for m in range(n_channels):
@@ -32,29 +30,29 @@ def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
         x_tilde = np.abs(QX) ** 2
 
         # Update W & H
-        Lambda = W @ H
-        R = np.sum(Lambda[..., np.newaxis] * g[:, :, np.newaxis], axis=0)
-        R[R < EPS] = EPS
-        xR = x_tilde / (R ** 2)
-        gxR = np.sum(g[:, :, np.newaxis] * xR[np.newaxis], axis = 3)
-        gR = np.sum(g[:, :, np.newaxis] / R[np.newaxis], axis = 3)
+        L = W @ H
+        Y_tidle = np.sum(L[..., np.newaxis] * g[:, :, np.newaxis], axis=0)
+        Y_tidle[Y_tidle < EPS] = EPS
+        xy = x_tilde / (Y_tidle ** 2)
+        g_y = np.sum(g[:, :, np.newaxis] * xy[np.newaxis], axis = 3)
+        gy_ = np.sum(g[:, :, np.newaxis] / Y_tidle[np.newaxis], axis = 3)
 
-        numerator = np.sum(H[:, np.newaxis, :, :] * gxR[:, :, np.newaxis], axis = 3)
-        denominator = np.sum(H[:, np.newaxis, :, :] * gR[:, :, np.newaxis], axis = 3)
-        denominator[denominator < EPS] = EPS
-        W = W * np.sqrt(numerator / denominator)
+        num = np.sum(H[:, np.newaxis, :, :] * g_y[:, :, np.newaxis], axis = 3)
+        den = np.sum(H[:, np.newaxis, :, :] * gy_[:, :, np.newaxis], axis = 3)
+        den[den < EPS] = EPS
+        W = W * np.sqrt(num / den)
 
-        Lambda = W @ H
-        R = np.sum(Lambda[...,np.newaxis] * g[:, :, np.newaxis], axis = 0)
-        R[R < EPS] = EPS
-        xR = x_tilde / (R ** 2)
-        gxR = np.sum(g[:, :, np.newaxis] * xR[np.newaxis], axis = 3)
-        gR = np.sum(g[:, :, np.newaxis] / R[np.newaxis], axis = 3)
+        L = W @ H
+        Y_tidle = np.sum(L[...,np.newaxis] * g[:, :, np.newaxis], axis = 0)
+        Y_tidle[Y_tidle < EPS] = EPS
+        xy = x_tilde / (Y_tidle ** 2)
+        g_y = np.sum(g[:, :, np.newaxis] * xy[np.newaxis], axis = 3)
+        gy_ = np.sum(g[:, :, np.newaxis] / Y_tidle[np.newaxis], axis = 3)
 
-        numerator = np.sum(W[:, :, :, np.newaxis] * gxR[:, :, np.newaxis], axis = 1)
-        denominator = np.sum(W[:, :, :, np.newaxis] * gR[:, :, np.newaxis], axis = 1)
-        denominator[denominator < EPS] = EPS
-        H = H * np.sqrt(numerator / denominator)
+        num = np.sum(W[:, :, :, np.newaxis] * g_y[:, :, np.newaxis], axis = 1)
+        den = np.sum(W[:, :, :, np.newaxis] * gy_[:, :, np.newaxis], axis = 1)
+        den[den < EPS] = EPS
+        H = H * np.sqrt(num / den)
 
         basis, activation = W, H
 
@@ -65,17 +63,17 @@ def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
         X = input.transpose(1, 2, 0)
         Q = diagonalizer
 
-        Lambda = W @ H
+        L = W @ H
 
-        R = np.sum(Lambda[..., np.newaxis] * g[:, :, np.newaxis], axis = 0)
+        Y_tidle = np.sum(L[..., np.newaxis] * g[:, :, np.newaxis], axis = 0)
         QX = np.sum(Q[:, np.newaxis, :, :] * X[:, :, np.newaxis, :], axis = 3)
         x_tilde = np.abs(QX) ** 2
 
-        R[R < EPS] = EPS
-        xR = x_tilde / (R ** 2)
+        Y_tidle[Y_tidle < EPS] = EPS
+        xy = x_tilde / (Y_tidle ** 2)
         
-        A = np.sum(Lambda[..., np.newaxis] * xR[np.newaxis], axis = 2)
-        B = np.sum(Lambda[..., np.newaxis] / R[np.newaxis], axis = 2)
+        A = np.sum(L[..., np.newaxis] * xy[np.newaxis], axis = 2)
+        B = np.sum(L[..., np.newaxis] / Y_tidle[np.newaxis], axis = 2)
         B[B < EPS] = EPS
         g = g * np.sqrt(A / B)
 
@@ -87,25 +85,25 @@ def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
         XX = X[:, :, :, np.newaxis] @ X[:, :, np.newaxis, :].conj()
 
         W, H = basis, activation
-        Lambda = W @ H
+        L = W @ H
 
-        R = np.sum(Lambda[..., np.newaxis] * g[:, :, np.newaxis], axis=0)
-        R[R < EPS] = EPS
-        E = np.eye(n_channels)
-        E = np.tile(E, reps=(n_bins, 1, 1))
+        Y_tidle = np.sum(L[..., np.newaxis] * g[:, :, np.newaxis], axis=0)
+        Y_tidle[Y_tidle < EPS] = EPS
+        hot_vec = np.eye(n_channels)
+        hot_vec = np.tile(hot_vec, reps=(n_bins, 1, 1))
 
         for channel_idx in range(n_channels):
             q_m_Hermite = Q[:, channel_idx, :]
-            V = (XX / R[:, :, channel_idx, np.newaxis, np.newaxis]).mean(axis=1)
+            V = (XX / Y_tidle[:, :, channel_idx, np.newaxis, np.newaxis]).mean(axis=1)
             QV = Q @ V
-            condition = np.linalg.cond(QV) < THRESHOLD
-            condition = condition[:,np.newaxis]
-            e_m = E[:, channel_idx, :]
+            # condition = np.linalg.cond(QV) < THRESHOLD
+            # condition = condition[:,np.newaxis]
+            e_m = hot_vec[:, channel_idx, :]
             q_m = np.linalg.solve(QV, e_m)
             qVq = q_m.conj()[:, np.newaxis, :] @ V @ q_m[:, :, np.newaxis]
-            denominator = np.sqrt(qVq[...,0])
-            denominator[denominator < EPS] = EPS
-            q_m_Hermite = np.where(condition, q_m.conj() / denominator, q_m_Hermite)
+            den = np.sqrt(qVq[...,0])
+            den[den < EPS] = EPS
+            # q_m_Hermite = np.where(condition, q_m.conj() / den, q_m_Hermite)
             Q[:, channel_idx, :] = q_m_Hermite
         diagonalizer = Q
 
@@ -114,11 +112,11 @@ def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
         g = spatial_covariance
         W, H = basis, activation
 
-        QQ = Q * Q.conj()
-        QQsum = np.real(QQ.sum(axis=2).mean(axis=1))
-        QQsum[QQsum < EPS] = EPS
-        Q /= np.sqrt(QQsum)[:, np.newaxis, np.newaxis]
-        g /= QQsum[np.newaxis, :, np.newaxis]
+        Q_Q = Q * Q.conj()
+        Q_Q_s = np.real(Q_Q.sum(axis=2).mean(axis=1))
+        Q_Q_s[Q_Q_s < EPS] = EPS
+        Q /= np.sqrt(Q_Q_s)[:, np.newaxis, np.newaxis]
+        g /= Q_Q_s[np.newaxis, :, np.newaxis]
 
         g_sum = g.sum(axis=2)
         g_sum[g_sum < EPS] = EPS
@@ -141,16 +139,16 @@ def mnmf(input, n_basis = 10, n_sources = None, iteration = 100):
     g = spatial_covariance
 
     W, H = basis, activation
-    Lambda = W @ H
+    L = W @ H
     
-    LambdaG = Lambda[..., np.newaxis] * g[:, :, np.newaxis, :]
-    y_tilde = np.sum(LambdaG, axis=0)
-    Q_inverse = np.linalg.inv(Q)
+    L_G = L[..., np.newaxis] * g[:, :, np.newaxis, :]
+    y_tilde = np.sum(L_G, axis=0)
+    Q_inv = np.linalg.inv(Q)
     QX = np.sum(Q[:, np.newaxis, :] * X[:, :, np.newaxis], axis=3)
     y_tilde[y_tilde < EPS] = EPS
-    QXLambdaGy = QX * (LambdaG / y_tilde)
+    QXLambdaGy = QX * (L_G / y_tilde)
     
-    x_hat = np.sum(Q_inverse[:, np.newaxis, :, :] * QXLambdaGy[:, :, :, np.newaxis, :], axis=4)
-    x_hat = x_hat.transpose(0, 3, 1, 2)
+    X_hat = np.sum(Q_inv[:, np.newaxis, :, :] * QXLambdaGy[:, :, :, np.newaxis, :], axis=4)
+    X_hat = X_hat.transpose(0, 3, 1, 2)
     
-    return x_hat[:, 0, :, :]
+    return X_hat[:, 0, :, :]

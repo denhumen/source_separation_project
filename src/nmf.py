@@ -1,9 +1,13 @@
-"NMF module"
+'''
+    NMF module
+'''
 
 import numpy as np
 
 def nndsvd_initialization(a, rank):
-    "Init func"
+    '''
+        Init func
+    '''
     u, s, v = np.linalg.svd(a, full_matrices=False)
     v = v.T
     w = np.zeros((a.shape[0], rank))
@@ -40,12 +44,16 @@ def nndsvd_initialization(a, rank):
 
 
 def divergence(V, W, H):
-    "Divergence func"
-    return 1/2*np.linalg.norm(W@H-V)
+    '''
+        Divergence func
+    '''
+    return (1 / 2) * np.linalg.norm(W @ H - V)
 
 
 def NMF(V, S, MAXITER = 5000, threshold = 1e-12): 
-    "NMF func"
+    ''''
+        NMF func
+    '''
     counter = 0
     cost_function = []
     beta_divergence = 1

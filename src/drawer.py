@@ -1,13 +1,17 @@
-"Drawer module"
+'''
+    Drawer module
+'''
 
 import numpy as np
 import librosa
 import matplotlib.pyplot as plt
 
-def plot_components(reconstructed_sounds, sr):
-    "Plots in wave form format"
+def plot(reconstructed_sounds, sr):
+    '''
+        Plots in wave form format
+    '''
     n = len(reconstructed_sounds)
-    colors = ['r', 'g', 'b']
+    colors = ['b', 'y', 'g']
     _, ax = plt.subplots(nrows=n, ncols=1, sharex=True, figsize=(11, 3*n))
     for i in range(n):
         librosa.display.waveshow(reconstructed_sounds[i], sr=sr,
@@ -16,7 +20,7 @@ def plot_components(reconstructed_sounds, sr):
         ax[i].legend()
 
 def mean_squared_error(audio1, audio2):
-    """
+    '''
     Compute the Mean Squared Error (MSE) between two audio signals.
     
     Parameters:
@@ -25,19 +29,19 @@ def mean_squared_error(audio1, audio2):
     
     Returns:
     - mse: float, the mean squared error between the two signals
-    """
-    # Ensure both signals have the same length
+    '''
     min_length = min(len(audio1), len(audio2))
     audio1 = audio1[:min_length]
     audio2 = audio2[:min_length]
     
-    # Compute the mean squared error
     mse = np.mean((audio1 - audio2) ** 2)
     
     return mse
 
 def plot_spectogram(y, sr, FRAME1 = 1024, HOP = 512):
-    "Spectogram func"
+    '''
+        Spectogram func
+    '''
     D = librosa.stft(y, n_fft=FRAME1, hop_length=HOP)
     magnitude = np.abs(D)
     librosa.display.specshow(librosa.amplitude_to_db(magnitude), 
@@ -51,8 +55,8 @@ def RMSE(y1, y2):
     rmse = np.sqrt(np.mean((y1 - y2) ** 2))
     return rmse
 
-def spectral_difference(audio1, audio2, sr=22050, n_fft=2048, hop_length=512):
-    """
+def spectral_difference(audio1, audio2, n_fft=2048, hop_length=512):
+    '''
     Calculate the spectral difference between two audio signals.
 
     Parameters:
@@ -64,8 +68,7 @@ def spectral_difference(audio1, audio2, sr=22050, n_fft=2048, hop_length=512):
 
     Returns:
     - float: Spectral difference between the two audio signals.
-    """
-    # Compute the Short-Time Fourier Transform (STFT) for both audio signals
+    '''
     trim = min(len(audio1), len(audio2))
 
     audio1 = audio1[:trim]
@@ -74,11 +77,9 @@ def spectral_difference(audio1, audio2, sr=22050, n_fft=2048, hop_length=512):
     stft1 = librosa.stft(audio1, n_fft=n_fft, hop_length=hop_length)
     stft2 = librosa.stft(audio2, n_fft=n_fft, hop_length=hop_length)
 
-    # Compute the magnitude spectra
     mag1 = np.abs(stft1)
     mag2 = np.abs(stft2)
 
-    # Compute the spectral difference
     diff = np.mean(np.abs(mag1 - mag2))
 
     return diff
